@@ -9,10 +9,11 @@ const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const upload = multer({
   storage: multer.memoryStorage(),
+  limits: { fileSize: 500 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.originalname.toLowerCase().endsWith('.csv')) {
       cb(null, true);
