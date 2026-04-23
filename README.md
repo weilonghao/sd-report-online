@@ -1,110 +1,105 @@
-# 閲囬泦浠诲姟SD鎶ヨ〃 - 鍦ㄧ嚎鐗?
+# 采集任务SD报表 - 在线版
 
-灏嗛涔﹀鍑虹殑 CSV 鏁版嵁涓婁紶鍚庯紝浠讳綍浜洪€氳繃閾炬帴鍗冲彲鏌ョ湅鍒版渶鏂扮粺璁＄粨鏋溿€傛棤闇€鐧诲綍锛屾敮鎸佺瓫閫夊拰澶?Tab 鏌ョ湅銆?
+将飞书导出的 CSV 数据上传后，任何人通过链接即可查看到最新统计结果。无需登录，支持筛选和多 Tab 查看。
 
-## 鏈湴杩愯
+## 本地运行
 
-`ash
+```bash
 cd report_online
 npm install
 npm start
-`
+```
 
-鐒跺悗鎵撳紑娴忚鍣ㄨ闂細
+然后打开浏览器访问：
 
-- 鐪嬫澘椤甸潰锛歚http://localhost:3000/report.html
-- 涓婁紶椤甸潰锛歚http://localhost:3000/admin.html
+- 看板页面：`http://localhost:3000/report.html`
+- 上传页面：`http://localhost:3000/admin.html`
 
-## 閮ㄧ讲鍒?Railway锛堝厤璐癸級
+## 部署到 Railway（免费）
 
-[Railway](https://railway.app) 鎻愪緵鍏嶈垂 Node.js 鎵樼锛岃嚜甯︽寔涔呭寲鏂囦欢绯荤粺锛圫QLite 鏁版嵁搴撴枃浠朵細淇濆瓨锛夈€?
+[Railway](https://railway.app) 提供免费 Node.js 托管，自带持久化文件系统（SQLite 数据库文件会保存）。
 
-### 姝ラ
+### 步骤
 
-1. **鍑嗗浠ｇ爜**锛氬皢鏁翠釜 eport_online 鏂囦欢澶逛笂浼犲埌 GitHub 浠撳簱
+1. **准备代码**：将整个 `report_online` 文件夹上传到 GitHub 仓库
 
-2. **鍒涘缓 Railway 椤圭洰**锛?
-   - 璁块棶 [railway.app](https://railway.app) 骞剁櫥褰曪紙鍙敤 GitHub 璐﹀彿锛?
-   - 鐐瑰嚮 "New Project" 鈫?"Deploy from GitHub repo"
-   - 閫夋嫨鍖呭惈 eport_online 鐨勪粨搴?
-   - Railway 浼氳嚜鍔ㄦ娴?Node.js 骞舵墽琛?
-pm install && npm start
+2. **创建 Railway 项目**：
+   - 访问 [railway.app](https://railway.app) 并登录（可用 GitHub 账号）
+   - 点击 "New Project" → "Deploy from GitHub repo"
+   - 选择包含 `report_online` 的仓库
+   - Railway 会自动检测 Node.js 并执行 `npm install && npm start`
 
-3. **閰嶇疆鍚姩鍛戒护**锛圧ailway 閫氬父鑷姩璇嗗埆锛屽闇€鎵嬪姩璁剧疆锛夛細
-   - Build Command: 
-pm install
-   - Start Command: 
-pm start
-   - Root Directory: eport_online
+3. **配置启动命令**（Railway 通常自动识别，如需手动设置）：
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Root Directory: `report_online`
 
-4. **鑾峰彇璁块棶鍦板潃**锛歊ailway 浼氬垎閰嶄竴涓?.railway.app 鍩熷悕
-   - 鐪嬫澘锛歚https://your-app.railway.app/report.html
-   - 涓婁紶锛歚https://your-app.railway.app/admin.html
+4. **获取访问地址**：Railway 会分配一个 `.railway.app` 域名
+   - 看板：`https://your-app.railway.app/report.html`
+   - 上传：`https://your-app.railway.app/admin.html`
 
-5. **涓婁紶鏁版嵁**锛氭墦寮€涓婁紶椤甸潰锛岄€夋嫨 CSV 鏂囦欢锛屼笂浼犳垚鍔熷悗浼氳嚜鍔ㄨ烦杞埌鐪嬫澘
+5. **上传数据**：打开上传页面，选择 CSV 文件，上传成功后会自动跳转到看板
 
-## 閮ㄧ讲鍒?Render锛堝厤璐癸級
+## 部署到 Render（免费）
 
-[Render](https://render.com) 鎻愪緵鍏嶈垂 Node.js 鎵樼銆?
+[Render](https://render.com) 提供免费 Node.js 托管。
 
-### 姝ラ
+### 步骤
 
-1. 灏嗕唬鐮佷笂浼犲埌 GitHub 浠撳簱
+1. 将代码上传到 GitHub 仓库
 
-2. 鍦?Render 鍒涘缓 Web Service锛?
+2. 在 Render 创建 Web Service：
    - Connect GitHub repo
-   - Region: Singapore锛堝氨杩戦€夋嫨锛?
-   - Branch: main
-   - Root Directory: eport_online
-   - Runtime: Node
-   - Build Command: 
-pm install
-   - Start Command: 
-pm start
+   - Region: Singapore（就近选择）
+   - Branch: `main`
+   - Root Directory: `report_online`
+   - Runtime: `Node`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
 
-3. 閮ㄧ讲瀹屾垚鍚庯紝璁块棶 https://your-app.onrender.com/report.html
+3. 部署完成后，访问 `https://your-app.onrender.com/report.html`
 
-## 閮ㄧ讲鍒?Zeabur锛堝厤璐癸紝鍥戒骇锛?
+## 部署到 Zeabur（免费，国产）
 
-[Zeabur](https://zeabur.com) 鎻愪緵鍏嶈垂 Node.js 鎵樼锛屾敮鎸佷腑鍥借闂€?
+[Zeabur](https://zeabur.com) 提供免费 Node.js 托管，支持中国访问。
 
-### 姝ラ
+### 步骤
 
-1. 灏嗕唬鐮佷笂浼犲埌 GitHub 浠撳簱
+1. 将代码上传到 GitHub 仓库
 
-2. 鍦?Zeabur 鍒涘缓鏂版湇鍔★紝閫夋嫨浠?GitHub 閮ㄧ讲
+2. 在 Zeabur 创建新服务，选择从 GitHub 部署
 
-3. 璁剧疆鍚?Render锛岃闂垎閰嶇殑鍩熷悕鍗冲彲
+3. 设置同 Render，访问分配的域名即可
 
-## 鍔熻兘璇存槑
+## 功能说明
 
-- **鐪嬫澘椤甸潰** (/report.html)锛氭煡鐪嬬粺璁＄粨鏋滐紝鏀寔鏃ユ湡鑼冨洿銆佺彮娆°€佸嚭杞︿汉銆佽溅鍙枫€佷换鍔′簲涓淮搴︾殑绛涢€夛紝涓変釜 Tab 鍒嗗埆灞曠ず姣忔棩浠诲姟姹囨€汇€佸嚭杞︿汉缁熻銆佷换鍔＄粺璁?
-- **涓婁紶椤甸潰** (/admin.html)锛氫笂浼?CSV 鏂囦欢锛屼笂浼犲悗鏇挎崲鍏ㄩ儴鐜版湁鏁版嵁
-- **瀹炴椂鍒锋柊**锛氱湅鏉块〉闈㈢偣鍑?鍒锋柊鏁版嵁"鎸夐挳鍙幏鍙栨渶鏂版暟鎹?
+- **看板页面** (`/report.html`)：查看统计结果，支持日期范围、班次、出车人、车号、任务五个维度的筛选，三个 Tab 分别展示每日任务汇总、出车人统计、任务统计
+- **上传页面** (`/admin.html`)：上传 CSV 文件，上传后替换全部现有数据
+- **实时刷新**：看板页面点击"刷新数据"按钮可获取最新数据
 
-## 鏁版嵁璇存槑
+## 数据说明
 
-涓婁紶鐨?CSV 鏂囦欢闇€瑕佸寘鍚互涓嬪垪锛堥涔﹁〃鏍兼爣鍑嗘牸寮忥級锛?
+上传的 CSV 文件需要包含以下列（飞书表格标准格式）：
 
-| 鍒楀悕 | 璇存槑 |
+| 列名 | 说明 |
 |------|------|
-| 鏃堕棿 | 鏃ユ湡锛屾牸寮?YYYY-MM-DD 鎴?YYYY/MM/DD |
-| 閲囬泦浠诲姟 | 浠诲姟鍚嶇О |
-| 鍑鸿溅浜篠D | 鍑鸿溅浜哄鍚嶏紙鏀寔澶氫汉鐢?/ 鍒嗛殧锛?|
-| 鍑鸿溅鏃堕棿 | 鍑哄彂鏃堕棿锛屾牸寮?HH:MM 鎴?HH锛歁M |
-| 杞﹀彿 | 杞︾墝鍙凤紙闈炲繀濉級 |
+| 时间 | 日期，格式 YYYY-MM-DD 或 YYYY/MM/DD |
+| 采集任务 | 任务名称 |
+| 出车人SD | 出车人姓名（支持多人用 / 分隔） |
+| 出车时间 | 出发时间，格式 HH:MM 或 HH：MM |
+| 车号 | 车牌号（非必填） |
 
-## 鐩綍缁撴瀯
+## 目录结构
 
-`
+```
 report_online/
-鈹溾攢鈹€ server/
-鈹?  鈹溾攢鈹€ index.js    # Express 鏈嶅姟鍏ュ彛
-鈹?  鈹溾攢鈹€ db.js       # SQLite 鏁版嵁搴撴搷浣?
-鈹?  鈹斺攢鈹€ parse.js    # CSV 瑙ｆ瀽閫昏緫
-鈹溾攢鈹€ public/
-鈹?  鈹溾攢鈹€ report.html # 鐪嬫澘椤甸潰
-鈹?  鈹斺攢鈹€ admin.html  # 涓婁紶绠＄悊椤甸潰
-鈹溾攢鈹€ data/           # SQLite 鏁版嵁搴撴枃浠讹紙閮ㄧ讲鍚庤嚜鍔ㄥ垱寤猴級
-鈹斺攢鈹€ package.json
-`
+├── server/
+│   ├── index.js    # Express 服务入口
+│   ├── db.js       # SQLite 数据库操作
+│   └── parse.js    # CSV 解析逻辑
+├── public/
+│   ├── report.html # 看板页面
+│   └── admin.html  # 上传管理页面
+├── data/           # SQLite 数据库文件（部署后自动创建）
+└── package.json
+```
