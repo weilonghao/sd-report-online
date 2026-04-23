@@ -1,0 +1,17 @@
+{
+  "name": "sd-report-online",
+  "version": "1.0.0",
+  "description": "采集任务SD报表在线版",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

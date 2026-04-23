@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>采集任务SD汇总报表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
+
+.header{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;padding:20px 32px;box-shadow:0 2px 12px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header h1{font-size:20px;font-weight:600;letter-spacing:.3px}
+.header p{font-size:12px;opacity:.85;margin-top:4px}
+.header-actions{display:flex;gap:8px}
+
+.btn{padding:8px 16px;border:1px solid rgba(255,255,255,.4);border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;font-weight:500}
+.btn-primary{background:#fff;color:#1565c0;border-color:#fff}
+.btn-primary:hover{background:#f0f0f0}
+.btn-secondary{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
+.btn-secondary:hover{background:rgba(255,255,255,.25)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.report-section{padding:0 32px 32px;display:none}
+.report-section.visible{display:block}
+
+.kpi-bar{display:flex;gap:10px;padding:16px 0;flex-wrap:wrap;align-items:center}
+.kpi{background:#fff;border-radius:10px;padding:10px 18px;min-width:90px;text-align:center;border:1px solid #e8e8e8;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.kpi .label{font-size:10px;color:#888;letter-spacing:.5px;text-transform:uppercase}
+.kpi .value{font-size:24px;font-weight:700;color:#1565c0;margin-top:2px}
+.kpi.white .value{color:#e65100}
+.kpi.night .value{color:#283593}
+.kpi.drivers .value{color:#2e7d32}
+.kpi.days .value{color:#546e7a}
+.kpi.tasks .value{color:#6a1b9a}
+
+.filter-bar{display:flex;gap:8px;padding:12px 0;align-items:center;flex-wrap:wrap;border-top:1px solid #e0e0e0;margin-top:12px}
+.filter-label{font-size:13px;color:#555;font-weight:500}
+.filter-bar input[type="date"]{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;color:#333;background:#fff;cursor:pointer}
+.filter-bar input[type="date"]:focus{outline:none;border-color:#1565c0}
+.filter-bar select{height:32px;min-width:120px;max-width:160px;border:1px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;color:#333;background:#fff;cursor:pointer;padding:2px 6px;overflow:hidden;text-overflow:ellipsis}
+.filter-bar select:focus{outline:none;border-color:#1565c0}
+.filter-hint{font-size:11px;color:#999;margin-left:4px}
+.filter-reset{padding:6px 14px;border:1px solid #ccc;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;background:#fff;color:#555;transition:all .15s}
+.filter-reset:hover{background:#f0f0f0;border-color:#999}
+.filter-divider{width:1px;height:20px;background:#ddd;margin:0 4px}
+
+.tabs-wrap{background:#fff;border-bottom:2px solid #e0e0e0;display:flex;gap:4px}
+.tab-btn{padding:11px 20px;border:none;background:none;cursor:pointer;font-size:14px;color:#666;border-bottom:3px solid transparent;transition:all .2s;font-weight:500;font-family:inherit}
+.tab-btn:hover{color:#1565c0}
+.tab-btn.active{color:#1565c0;border-bottom-color:#1565c0;font-weight:700}
+.tab-content{display:none;padding:20px 0 32px}
+.tab-content.active{display:block}
+
+.section{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.section-header{background:#1565c0;color:#fff;padding:10px 20px;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.section-header .row-count{font-size:12px;font-weight:400;opacity:.8}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#e3f0ff;color:#1565c0;padding:9px 12px;text-align:center;font-weight:700;border-bottom:2px solid #c2d9f8;white-space:nowrap;position:sticky;top:0;z-index:1}
+tbody tr{border-bottom:1px solid #f0f0f0}
+tbody tr:hover{background:#f8f9ff}
+tbody tr:nth-child(even){background:#fafbff}
+tbody tr:nth-child(even):hover{background:#f0f4ff}
+td{padding:8px 12px;vertical-align:middle}
+thead th:nth-child(1),td:nth-child(1){min-width:100px}
+thead th:nth-child(2),td:nth-child(2){min-width:160px}
+thead th:nth-child(3),td:nth-child(3){width:52px;text-align:center}
+thead th:nth-child(4),td:nth-child(4){width:52px;text-align:center}
+thead th:nth-child(5),td:nth-child(5){width:52px;text-align:center}
+.num{text-align:center;font-weight:700}
+.total-num{color:#1565c0;font-size:14px}
+
+.date-header-row{background:#d6e4f7!important;border-top:2px solid #90b8e0!important;border-bottom:1px solid #bbd6fb!important}
+.date-header-row:hover{background:#c5d8ef!important}
+.date-header-row td{padding:7px 12px}
+.date-cell{font-weight:700;color:#0d47a1;text-align:left;white-space:nowrap;vertical-align:middle}
+.weekday{font-size:11px;color:#888;font-weight:400;display:block}
+.date-summary-cell{font-size:12px;color:#555;text-align:left;vertical-align:middle}
+.sub-w{color:#e65100;font-weight:600}
+.sub-n{color:#283593;font-weight:600}
+.task-cell{color:#444;word-wrap:break-word;word-break:keep-all;white-space:normal;line-height:1.5;padding:8px 12px}
+.drivers-cell{vertical-align:middle;padding:6px 10px}
+
+.chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;margin:2px 3px 2px 0;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;white-space:nowrap;line-height:1.6}
+.chip.chip-night{background:#e8eaf6;color:#283593;border-color:#c5cae9}
+.chip.chip-all{background:#fff8e1;color:#f57f17;border-color:#ffe082;font-weight:600}
+.chip-legend{display:flex;gap:16px;padding:8px 0;align-items:center;flex-wrap:wrap}
+.chip-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#666}
+.chip-legend-item .chip{margin:0;font-size:11px;padding:1px 6px}
+
+.driver-cell{font-weight:600;max-width:100px;color:#333}
+thead th.t-left,td.t-left{text-align:left}
+
+.empty-state{text-align:center;padding:48px;color:#aaa;font-size:14px}
+.empty-state.hidden{display:none}
+
+.footer{text-align:center;padding:20px;font-size:12px;color:#bbb}
+
+.loading-state{text-align:center;padding:60px 20px}
+.spinner{display:inline-block;width:36px;height:36px;border:4px solid #e3f0ff;border-top-color:#1565c0;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-state p{color:#888;font-size:14px}
+.loading-state small{color:#aaa;font-size:12px}
+
+.refresh-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;background:rgba(255,255,255,.2);color:rgba(255,255,255,.9)}
+.refresh-badge .dot{width:6px;height:6px;border-radius:50%;background:#4caf50;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.last-updated{font-size:11px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px}
+
+@media(max-width:768px){
+  .header{padding:14px 16px}
+  .header h1{font-size:16px}
+  .report-section{padding-left:16px;padding-right:16px}
+  .kpi{min-width:75px;padding:8px 10px}
+  .kpi .value{font-size:18px}
+  thead th:nth-child(1),td:nth-child(1){min-width:80px}
+  thead th:nth-child(2),td:nth-child(2){min-width:120px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>采集任务SD汇总报表</h1>
+    <p>在线版 &mdash; 数据实时同步</p>
+  </div>
+  <div class="header-actions">
+    <div class="last-updated" id="lastUpdated">
+      <span class="refresh-badge"><span class="dot"></span>实时</span>
+    </div>
+    <button class="btn btn-secondary" id="refreshBtn" onclick="refreshData()">刷新数据</button>
+    <button class="btn btn-primary" onclick="window.location.href='/admin.html'">上传数据</button>
+  </div>
+</div>
+
+<div class="loading-state" id="loadingState">
+  <div class="spinner"></div>
+  <p>正在加载数据...</p>
+  <small id="loadingDetail">连接服务器</small>
+</div>
+
+<div class="empty-state hidden" id="emptyState">
+  <p>暂无数据，请先 <a href="/admin.html" style="color:#1565c0">上传CSV文件</a></p>
+</div>
+
+<div class="report-section" id="reportSection">
+  <div class="kpi-bar" id="kpiBar"></div>
+
+  <div class="section">
+    <div class="filter-bar">
+      <span class="filter-label">日期范围：</span>
+      <input type="date" id="dateFrom">
+      <span style="color:#aaa;font-size:13px">至</span>
+      <input type="date" id="dateTo">
+      <span class="filter-divider"></span>
+      <span class="filter-label">班次：</span>
+      <select id="filterShift" onchange="applyFilters()">
+        <option value="">全部</option>
+        <option value="白班">白班</option>
+        <option value="夜班">夜班</option>
+      </select>
+      <span class="filter-label">出车人：</span>
+      <select id="filterDriver" onchange="applyFilters()">
+        <option value="">全部</option>
+      </select>
+      <span class="filter-label">车号：</span>
+      <select id="filterCar" onchange="applyFilters()">
+        <option value="">全部</option>
+      </select>
+      <span class="filter-label">任务：</span>
+      <select id="filterTask" onchange="applyFilters()">
+        <option value="">全部</option>
+      </select>
+      <button class="filter-reset" onclick="resetAllFilters()">重置全部</button>
+    </div>
+
+    <div class="tabs-wrap">
+      <button class="tab-btn active" onclick="showTab('main')">每日任务SD汇总</button>
+      <button class="tab-btn" onclick="showTab('drivers')">出车人统计</button>
+      <button class="tab-btn" onclick="showTab('tasks')">任务统计</button>
+    </div>
+
+    <div id="tab-main" class="tab-content active">
+      <div class="section-header">
+        每日每任务SD人数
+        <span class="row-count" id="rowCount"></span>
+      </div>
+      <div class="chip-legend">
+        <div class="chip-legend-item"><span class="chip">张三</span> 白班</div>
+        <div class="chip-legend-item"><span class="chip chip-night">李四</span> 夜班</div>
+        <div class="chip-legend-item"><span class="chip chip-all">王五</span> 白班+夜班</div>
+      </div>
+      <div id="mainTableBody"></div>
+    </div>
+
+    <div id="tab-drivers" class="tab-content">
+      <div class="section-header">出车人出勤统计 &mdash; 按出勤次数降序</div>
+      <div id="driversTableBody"></div>
+    </div>
+
+    <div id="tab-tasks" class="tab-content">
+      <div class="section-header">任务维度统计 &mdash; 按总人次降序</div>
+      <div id="tasksTableBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">采集任务SD汇总报表 &middot; <span id="genTime"></span></div>
+
+<script>
+let allRecords = [];
+let currentMinDate = '';
+let currentMaxDate = '';
+
+async function loadData() {
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  const reportSection = document.getElementById('reportSection');
+
+  loadingState.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+  reportSection.classList.remove('visible');
+
+  try {
+    document.getElementById('loadingDetail').textContent = '获取筛选选项...';
+    const filtersResp = await fetch('/api/filters');
+    const filters = await filtersResp.json();
+
+    document.getElementById('loadingDetail').textContent = '获取记录数据...';
+    const recordsResp = await fetch('/api/records');
+    const recordsData = await recordsResp.json();
+    allRecords = recordsData.records;
+
+    const allDates = [...new Set(allRecords.map(r => r.date))].sort();
+    currentMinDate = allDates[0] || '';
+    currentMaxDate = allDates[allDates.length - 1] || '';
+
+    document.getElementById('dateFrom').value = currentMinDate;
+    document.getElementById('dateFrom').min = currentMinDate;
+    document.getElementById('dateFrom').max = currentMaxDate;
+    document.getElementById('dateTo').value = currentMaxDate;
+    document.getElementById('dateTo').min = currentMinDate;
+    document.getElementById('dateTo').max = currentMaxDate;
+
+    fillSelect('filterDriver', filters.drivers || []);
+    fillSelect('filterCar', (filters.cars || []).filter(c => c));
+    fillSelect('filterTask', (filters.tasks || []).filter(t => t));
+
+    loadingState.classList.add('hidden');
+
+    if (allRecords.length === 0) {
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    reportSection.classList.add('visible');
+    buildReport(allRecords);
+    updateLastUpdated();
+  } catch (err) {
+    console.error('Failed to load data:', err);
+    loadingState.classList.add('hidden');
+    emptyState.classList.remove('hidden');
+    emptyState.querySelector('p').innerHTML = `加载失败: ${escHtml(err.message)}<br><small>请确保服务器正在运行</small>`;
+  }
+}
+
+function updateLastUpdated() {
+  const el = document.getElementById('lastUpdated');
+  if (el) {
+    el.innerHTML = `<span class="refresh-badge"><span class="dot"></span>实时</span> <span style="opacity:.7">最后更新: ${new Date().toLocaleString('zh-CN')}</span>`;
+  }
+}
+
+async function refreshData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = '刷新中...';
+  await loadData();
+  btn.disabled = false;
+  btn.textContent = '刷新数据';
+}
+
+function fillSelect(id, options) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">全部</option>';
+  for (const opt of options) {
+    sel.innerHTML += `<option value="${escHtml(opt)}">${escHtml(opt)}</option>`;
+  }
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildReport(records) {
+  buildAllTabs(records);
+  document.getElementById('genTime').textContent = new Date().toLocaleString('zh-CN');
+}
+
+function buildAllTabs(records) {
+  const { taskSummary, driverSummary, globalTaskSummary } = buildSummaries(records);
+
+  const allDates = [...new Set(records.map(r => r.date))].sort();
+  const allDrivers = [...new Set(records.map(r => r.driver))];
+  const allTasks = [...new Set(records.map(r => r.task))].filter(t => t !== '未知任务');
+  const totalCount = records.length;
+  const whiteCount = records.filter(r => r.shift === '白班').length;
+  const nightCount = records.filter(r => r.shift === '夜班').length;
+
+  const kpiBar = document.getElementById('kpiBar');
+  kpiBar.innerHTML = `
+    <div class="kpi"><div class="label">总出勤人次</div><div class="value">${totalCount}</div></div>
+    <div class="kpi white"><div class="label">白班人次</div><div class="value">${whiteCount}</div></div>
+    <div class="kpi night"><div class="label">夜班人次</div><div class="value">${nightCount}</div></div>
+    <div class="kpi drivers"><div class="label">出车人数</div><div class="value">${allDrivers.length}</div></div>
+    <div class="kpi days"><div class="label">出勤天数</div><div class="value">${allDates.length}</div></div>
+    <div class="kpi tasks"><div class="label">任务类型</div><div class="value">${allTasks.length}</div></div>
+  `;
+
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+
+  const dateTaskAgg = {};
+  for (const key in taskSummary) {
+    const [date, task] = key.split('\x00');
+    const dk = `${date}\x00${task}`;
+    if (!dateTaskAgg[dk]) {
+      dateTaskAgg[dk] = { date, task, drivers: new Set(), white_drivers: new Set(), night_drivers: new Set() };
+    }
+    for (const d of taskSummary[key].drivers) dateTaskAgg[dk].drivers.add(d);
+    for (const d of taskSummary[key].white_drivers) dateTaskAgg[dk].white_drivers.add(d);
+    for (const d of taskSummary[key].night_drivers) dateTaskAgg[dk].night_drivers.add(d);
+  }
+
+  const mainBody = document.getElementById('mainTableBody');
+  let mainHTML = `<table><thead><tr><th>日期</th><th>采集任务</th><th>白班<br>人数</th><th>夜班<br>人数</th><th>合计<br>人次</th><th>出车人名单</th></tr></thead>`;
+  const WEEKDAY = ['一','二','三','四','五','六','日'];
+  const filteredDates = allDates.filter(d => (!from || d >= from) && (!to || d <= to));
+
+  for (const date of filteredDates.reverse()) {
+    const dayTasks = Object.keys(dateTaskAgg)
+      .filter(k => k.startsWith(date + '\x00'))
+      .map(k => ({ key: k, data: dateTaskAgg[k] }))
+      .sort((a, b) => a.data.task.localeCompare(b.data.task));
+
+    if (dayTasks.length === 0) continue;
+
+    let wd = '';
+    try {
+      const dt = new Date(date);
+      wd = WEEKDAY[dt.getDay() === 0 ? 6 : dt.getDay() - 1];
+    } catch(e) {}
+
+    const whiteTotal = dayTasks.reduce((s, d) => s + d.data.white_drivers.size, 0);
+    const nightTotal = dayTasks.reduce((s, d) => s + d.data.night_drivers.size, 0);
+    const dayTotal = dayTasks.reduce((s, d) => s + d.data.drivers.size, 0);
+
+    mainHTML += `<tbody id="group-${date}" class="date-group">`;
+    mainHTML += `<tr class="date-header-row"><td class="date-cell">${date}<br><span class="weekday">周${wd}</span></td><td class="date-summary-cell" colspan="5"><span class="sub-w">白班 ${whiteTotal} 人</span>&nbsp;&middot;&nbsp;<span class="sub-n">夜班 ${nightTotal} 人</span>&nbsp;&middot;&nbsp;合计 <strong>${dayTotal}</strong> 人次</td></tr>`;
+
+    for (const dt of dayTasks) {
+      const drivers = [...dt.data.drivers];
+      const whiteDrivers = [...dt.data.white_drivers];
+      const nightDrivers = [...dt.data.night_drivers];
+      let chips = '';
+      for (const d of drivers) {
+        const isWhite = dt.data.white_drivers.has(d);
+        const isNight = dt.data.night_drivers.has(d);
+        let cls = 'chip';
+        if (isWhite && isNight) cls = 'chip chip-all';
+        else if (isNight) cls = 'chip chip-night';
+        chips += `<span class="${cls}">${escHtml(d)}</span>`;
+      }
+      mainHTML += `<tr data-date="${date}"><td></td><td class="task-cell">${escHtml(dt.data.task)}</td><td class="num">${whiteDrivers.length}</td><td class="num">${nightDrivers.length}</td><td class="num total-num">${drivers.length}</td><td class="drivers-cell">${chips}</td></tr>`;
+    }
+    mainHTML += '</tbody>';
+  }
+  mainHTML += '</table>';
+  mainBody.innerHTML = mainHTML;
+
+  const driversBody = document.getElementById('driversTableBody');
+  let driversHTML = `<table><thead><tr><th class="t-left">出车人</th><th>白班次数</th><th>夜班次数</th><th>总计</th><th>出勤天数</th><th class="t-left">参与任务</th></tr></thead><tbody>`;
+  const sortedDrivers = Object.entries(driverSummary).sort((a, b) => b[1].total - a[1].total);
+  for (const [driver, data] of sortedDrivers) {
+    const tasks = [...data.tasks].sort();
+    const taskStr = tasks.slice(0, 3).join('/') + (tasks.length > 3 ? '...' : '');
+    driversHTML += `<tr><td class="driver-cell">${escHtml(driver)}</td><td class="num">${data.white}</td><td class="num">${data.night}</td><td class="num total-num">${data.total}</td><td class="num">${data.dates.size}</td><td class="task-cell" title="${escHtml(tasks.join('/'))}">${escHtml(taskStr)}</td></tr>`;
+  }
+  driversHTML += '</tbody></table>';
+  driversBody.innerHTML = driversHTML;
+
+  const tasksBody = document.getElementById('tasksTableBody');
+  let tasksHTML = `<table><thead><tr><th class="t-left">采集任务</th><th>总人次</th><th>白班人次</th><th>夜班人次</th><th>参与人数</th><th>出勤天数</th></tr></thead><tbody>`;
+  const sortedTasks = Object.entries(globalTaskSummary).sort((a, b) => b[1].total - a[1].total);
+  for (const [task, data] of sortedTasks) {
+    tasksHTML += `<tr><td class="task-cell">${escHtml(task)}</td><td class="num total-num">${data.total}</td><td class="num">${data.white}</td><td class="num">${data.night}</td><td class="num">${data.drivers.size}</td><td class="num">${data.dates.size}</td></tr>`;
+  }
+  tasksHTML += '</tbody></table>';
+  tasksBody.innerHTML = tasksHTML;
+}
+
+function buildSummaries(records) {
+  const taskSummary = {};
+  const driverSummary = {};
+  const globalTaskSummary = {};
+
+  for (const r of records) {
+    const tk = `${r.date}\x00${r.task}\x00${r.shift}`;
+    if (!taskSummary[tk]) {
+      taskSummary[tk] = { date: r.date, task: r.task, shift: r.shift, drivers: new Set(), white_drivers: new Set(), night_drivers: new Set() };
+    }
+    taskSummary[tk].drivers.add(r.driver);
+    if (r.shift === '白班') taskSummary[tk].white_drivers.add(r.driver);
+    else taskSummary[tk].night_drivers.add(r.driver);
+
+    if (!driverSummary[r.driver]) {
+      driverSummary[r.driver] = { total: 0, white: 0, night: 0, dates: new Set(), tasks: new Set() };
+    }
+    driverSummary[r.driver].total++;
+    driverSummary[r.driver].dates.add(r.date);
+    driverSummary[r.driver].tasks.add(r.task);
+    if (r.shift === '白班') driverSummary[r.driver].white++;
+    else driverSummary[r.driver].night++;
+
+    if (!globalTaskSummary[r.task]) {
+      globalTaskSummary[r.task] = { total: 0, white: 0, night: 0, drivers: new Set(), dates: new Set() };
+    }
+    globalTaskSummary[r.task].total++;
+    globalTaskSummary[r.task].drivers.add(r.driver);
+    globalTaskSummary[r.task].dates.add(r.date);
+    if (r.shift === '白班') globalTaskSummary[r.task].white++;
+    else globalTaskSummary[r.task].night++;
+  }
+
+  return { taskSummary, driverSummary, globalTaskSummary };
+}
+
+function applyFilters() {
+  const dateFrom  = document.getElementById('dateFrom').value;
+  const dateTo    = document.getElementById('dateTo').value;
+  const shiftVal  = document.getElementById('filterShift').value;
+  const driverVal = document.getElementById('filterDriver').value;
+  const carVal    = document.getElementById('filterCar').value;
+  const taskVal   = document.getElementById('filterTask').value;
+
+  const filtered = allRecords.filter(r => {
+    if (dateFrom && r.date < dateFrom) return false;
+    if (dateTo && r.date > dateTo) return false;
+    if (shiftVal && r.shift !== shiftVal) return false;
+    if (driverVal && r.driver !== driverVal) return false;
+    if (carVal && r.car_number !== carVal) return false;
+    if (taskVal && r.task !== taskVal) return false;
+    return true;
+  });
+
+  buildAllTabs(filtered);
+}
+
+function resetAllFilters() {
+  document.getElementById('dateFrom').value = currentMinDate;
+  document.getElementById('dateTo').value = currentMaxDate;
+  document.getElementById('filterShift').value = '';
+  document.getElementById('filterDriver').value = '';
+  document.getElementById('filterCar').value = '';
+  document.getElementById('filterTask').value = '';
+  buildAllTabs(allRecords);
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+document.getElementById('dateFrom').addEventListener('change', applyFilters);
+document.getElementById('dateTo').addEventListener('change', applyFilters);
+loadData();
+</script>
+</body>
+</html>

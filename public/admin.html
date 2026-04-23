@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上传数据 - 采集任务SD报表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
+
+.header{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;padding:20px 32px;box-shadow:0 2px 12px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header h1{font-size:20px;font-weight:600;letter-spacing:.3px}
+.header p{font-size:12px;opacity:.85;margin-top:4px}
+
+.btn{padding:8px 16px;border:1px solid rgba(255,255,255,.4);border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;font-weight:500}
+.btn-primary{background:#fff;color:#1565c0;border-color:#fff}
+.btn-primary:hover{background:#f0f0f0}
+.btn-secondary{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
+.btn-secondary:hover{background:rgba(255,255,255,.25)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.upload-section{padding:32px;max-width:720px;margin:0 auto}
+.upload-card{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:32px}
+
+.upload-title{font-size:16px;font-weight:700;color:#1565c0;margin-bottom:8px}
+.upload-desc{font-size:13px;color:#666;margin-bottom:20px;line-height:1.6}
+
+.upload-box{border:2px dashed #c0d0e8;border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafcff;margin-bottom:16px}
+.upload-box:hover,.upload-box.dragover{border-color:#1565c0;background:#e8f0ff}
+.upload-box.dragover{transform:scale(1.01)}
+.upload-icon{font-size:40px;margin-bottom:12px;display:block}
+.upload-box p{font-size:14px;color:#555}
+.upload-box .hint{font-size:12px;color:#aaa;margin-top:6px}
+
+.selected-files{margin-bottom:16px}
+.selected-files-title{font-size:13px;color:#555;font-weight:500;margin-bottom:8px}
+.file-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f5f7ff;border:1px solid #e0e8f8;border-radius:8px;margin-bottom:6px}
+.file-item .name{flex:1;font-size:13px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-item .size{font-size:11px;color:#aaa;flex-shrink:0}
+.file-item .remove{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:0;line-height:1}
+.file-item .remove:hover{color:#e53935}
+.no-file{text-align:center;padding:16px;color:#bbb;font-size:13px;border:1px dashed #ddd;border-radius:8px}
+
+.upload-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.upload-note{fadding:6px 0;font-size:11px;color:#999;flex:1}
+
+.progress-section{margin-top:20px;display:none}
+.progress-section.visible{display:block}
+.progress-title{font-size:13px;font-weight:600;color:#333;margin-bottom:10px}
+.progress-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fafc;border:1px solid #e8eef8;border-radius:6px;margin-bottom:6px;font-size:13px}
+.progress-item .file-name{color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progress-item .status{margin-left:12px;flex-shrink:0;font-size:12px}
+.status-pending{color:#aaa}
+.status-uploading{color:#1565c0}
+.status-ok{color:#2e7d32}
+.status-fail{color:#e53935}
+
+.result-section{margin-top:20px;display:none;padding:20px;border-radius:10px;text-align:center}
+.result-section.visible{display:block}
+.result-success{background:#f0f9f0;border:1px solid #c8e6c9;color:#2e7d32}
+.result-error{background:#fff5f5;border:1px solid #ffcdd2;color:#c62828}
+.result-section h3{font-size:15px;margin-bottom:8px}
+.result-section p{font-size:13px;opacity:.9}
+
+.info-card{background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:20px 24px;margin-top:20px}
+.info-card h3{font-size:14px;color:#1565c0;margin-bottom:10px;font-weight:600}
+.info-card ul{font-size:13px;color:#555;line-height:2;padding-left:20px}
+.info-card li strong{color:#333}
+
+.footer{text-align:center;padding:20px;font-size:12px;color:#bbb}
+
+@media(max-width:768px){
+  .header{padding:14px 16px}
+  .upload-section{padding:16px}
+  .upload-card{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>上传数据</h1>
+    <p>采集任务SD汇总报表 &mdash; 数据管理</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="window.location.href='/report.html'">查看看板</button>
+  </div>
+</div>
+
+<div class="upload-section">
+  <div class="upload-card">
+    <div class="upload-title">上传 CSV 文件</div>
+    <div class="upload-desc">
+      上传飞书导出的 CSV 数据文件。上传将替换现有全部数据，请确保一次性上传所有需要统计的文件。
+    </div>
+
+    <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+      <span class="upload-icon">&#128194;</span>
+      <p>点击选择 CSV 文件，或将文件拖拽到此处</p>
+      <p class="hint">支持同时选择多个文件</p>
+    </div>
+    <input type="file" id="fileInput" accept=".csv" multiple style="display:none">
+
+    <div class="selected-files">
+      <div class="selected-files-title">已选文件 (<span id="fileCount">0</span>)</div>
+      <div id="fileList" class="no-file">尚未选择文件</div>
+    </div>
+
+    <div class="upload-actions">
+      <button class="btn btn-primary" id="uploadBtn" disabled onclick="doUpload()">上传数据</button>
+      <span class="upload-note">上传后会自动替换现有数据，请一次性选择所有文件</span>
+    </div>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-title">上传进度</div>
+      <div id="progressList"></div>
+    </div>
+
+    <div class="result-section" id="resultSection">
+      <h3 id="resultTitle"></h3>
+      <p id="resultMessage"></p>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>使用说明</h3>
+    <ul>
+      <li>在飞书表格中将数据导出为 <strong>CSV 格式</strong></li>
+      <li>支持同时选择多个 CSV 文件（data/ 目录下所有文件）</li>
+      <li>上传后数据会替换现有数据，如需追加请注意</li>
+      <li>上传完成后点击"<strong>查看看板</strong>"查看最新统计</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">采集任务SD汇总报表 &middot; <a href="/report.html" style="color:#bbb">返回看板</a></div>
+
+<script>
+let selectedFiles = [];
+
+const uploadBox = document.getElementById('uploadBox');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', function(e) {
+  addFiles(Array.from(e.target.files));
+  fileInput.value = '';
+});
+
+uploadBox.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  uploadBox.classList.add('dragover');
+});
+
+uploadBox.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  uploadBox.classList.remove('dragover');
+});
+
+uploadBox.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadBox.classList.remove('dragover');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.csv'));
+  addFiles(files);
+});
+
+function addFiles(files) {
+  for (const f of files) {
+    if (!selectedFiles.some(sf => sf.name === f.name && sf.size === f.size)) {
+      selectedFiles.push(f);
+    }
+  }
+  renderFileList();
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const countEl = document.getElementById('fileCount');
+  const listEl = document.getElementById('fileList');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  countEl.textContent = selectedFiles.length;
+  uploadBtn.disabled = selectedFiles.length === 0;
+
+  if (selectedFiles.length === 0) {
+    listEl.className = 'no-file';
+    listEl.innerHTML = '尚未选择文件';
+    return;
+  }
+
+  listEl.className = '';
+  listEl.innerHTML = selectedFiles.map((f, i) => {
+    const sizeStr = f.size > 1024 * 1024
+      ? (f.size / (1024 * 1024)).toFixed(1) + ' MB'
+      : f.size > 1024
+        ? (f.size / 1024).toFixed(0) + ' KB'
+        : f.size + ' B';
+    return `<div class="file-item">
+      <span class="name" title="${escHtml(f.name)}">${escHtml(f.name)}</span>
+      <span class="size">${sizeStr}</span>
+      <button class="remove" onclick="removeFile(${i})" title="移除">&times;</button>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function doUpload() {
+  if (selectedFiles.length === 0) return;
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = '上传中...';
+
+  const progressSection = document.getElementById('progressSection');
+  const progressList = document.getElementById('progressList');
+  const resultSection = document.getElementById('resultSection');
+  resultSection.classList.remove('visible', 'result-success', 'result-error');
+  progressSection.classList.add('visible');
+  progressList.innerHTML = '';
+
+  selectedFiles.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'progress-item';
+    item.id = `pitem-${i}`;
+    item.innerHTML = `<span class="file-name">${escHtml(f.name)}</span><span class="status status-pending">等待中</span>`;
+    progressList.appendChild(item);
+  });
+
+  const formData = new FormData();
+  selectedFiles.forEach(f => formData.append('files', f));
+
+  try {
+    const resp = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const json = await resp.json();
+
+    progressList.querySelectorAll('.progress-item').forEach(item => {
+      item.querySelector('.status').textContent = '完成';
+      item.querySelector('.status').className = 'status status-ok';
+    });
+
+    if (json.success) {
+      resultSection.classList.add('result-success');
+      document.getElementById('resultTitle').textContent = '上传成功';
+      document.getElementById('resultMessage').textContent =
+        `共上传 ${json.total} 条记录，来自 ${json.files.length} 个文件。正在跳转到看板...`;
+      resultSection.classList.add('visible');
+      selectedFiles = [];
+      renderFileList();
+      setTimeout(() => { window.location.href = '/report.html'; }, 2000);
+    } else {
+      throw new Error(json.error || '上传失败');
+    }
+  } catch (err) {
+    progressList.querySelectorAll('.progress-item').forEach(item => {
+      item.querySelector('.status').textContent = '失败';
+      item.querySelector('.status').className = 'status status-fail';
+    });
+    resultSection.classList.add('result-error');
+    document.getElementById('resultTitle').textContent = '上传失败';
+    document.getElementById('resultMessage').textContent = err.message;
+    resultSection.classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '上传数据';
+}
+</script>
+</body>
+</html>
